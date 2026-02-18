@@ -21,7 +21,7 @@ cloudinary.config({
 });
 
 // ────────────────────────────────────────────────
-// Multer setup – memory storage (direct upload to Cloudinary)
+// Multer setup – memory storage (direct to Cloudinary)
 // ────────────────────────────────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -33,20 +33,30 @@ const upload = multer({
 // ────────────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve all static files from the 'public' folder
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ────────────────────────────────────────────────
 // Routes
 // ────────────────────────────────────────────────
 
-// Root path – explicit
+// Root → home page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Catch-all for other static HTML pages (senators.html, contact.html, etc.)
+app.get('*', (req, res, next) => {
+  const requestedPath = path.join(__dirname, 'public', req.path);
+  if (fs.existsSync(requestedPath) && fs.statSync(requestedPath).isFile()) {
+    return res.sendFile(requestedPath);
+  }
+  // Fallback to index.html (useful for SPA-like behavior if needed later)
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ────────────────────────────────────────────────
 // Contact form endpoint
+// ────────────────────────────────────────────────
 app.post('/api/contact', async (req, res) => {
   const { firstName, lastName, studentId, subject, message } = req.body;
 
@@ -58,13 +68,13 @@ app.post('/api/contact', async (req, res) => {
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // Must be App Password
+      pass: process.env.EMAIL_PASS, // Must be Gmail App Password
     },
   });
 
   const mailOptions = {
     from: `"VVU SRC Contact Form" <${process.env.EMAIL_USER}>`,
-    to: 'senate@vvu.edu.gh', // ← change to real email
+    to: 'senate@vvu.edu.gh', // ← replace with real senate email
     replyTo: `${firstName} ${lastName} <${studentId}@vvu.edu.gh>`,
     subject: `New Senate Inquiry: ${subject}`,
     text: `
@@ -95,41 +105,31 @@ ${message}
 });
 
 // ────────────────────────────────────────────────
-// Admin – Protected PDF upload page
+// Admin – Protected admin panel (full version)
 // ────────────────────────────────────────────────
 app.get('/admin/upload', (req, res) => {
-  try {
-    const filePath = path.join(__dirname, 'public', 'admin-upload.html');
-    
-    // Optional: log what path we're trying (helps debugging)
-    console.log('Trying to serve admin page from:', filePath);
+  const filePath = path.join(__dirname, 'public', 'admin.html'); // ← your full admin panel file
 
-    // Check if file actually exists before sending
-    if (!fs.existsSync(filePath)) {
-      console.error('Admin page file NOT found at:', filePath);
-      return res.status(500).send('Admin page file is missing on the server');
-    }
-
-    const authHeader = req.headers.authorization || '';
-    const base64Credentials = authHeader.split(' ')[1] || '';
-    const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-    const [username, password] = credentials.split(':');
-
-    if (username === 'admin' && password === process.env.ADMIN_PASSWORD) {
-      return res.sendFile(filePath);
-    }
-
-    res.set('WWW-Authenticate', 'Basic realm="Admin Area"');
-    res.status(401).send('Login required (username: admin, password from .env)');
-  } catch (err) {
-    console.error('CRASH in /admin/upload route:', err.message);
-    console.error(err.stack);
-    res.status(500).send('Internal server error – check Render logs for details');
+  if (!fs.existsSync(filePath)) {
+    console.error('Admin panel file missing:', filePath);
+    return res.status(500).send('Admin panel file is missing on server');
   }
+
+  const authHeader = req.headers.authorization || '';
+  const base64Credentials = authHeader.split(' ')[1] || '';
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [username, password] = credentials.split(':');
+
+  if (username === 'admin' && password === process.env.ADMIN_PASSWORD) {
+    return res.sendFile(filePath);
+  }
+
+  res.set('WWW-Authenticate', 'Basic realm="Admin Panel – VVU SRC Senate"');
+  res.status(401).send('Authentication required (username: admin)');
 });
 
 // ────────────────────────────────────────────────
-// Handle PDF upload (POST)
+// Handle PDF upload (Student Handbook / SRC Constitution)
 // ────────────────────────────────────────────────
 app.post('/admin/upload', upload.single('pdf'), async (req, res) => {
   const authHeader = req.headers.authorization || '';
@@ -192,7 +192,7 @@ app.post('/admin/upload', upload.single('pdf'), async (req, res) => {
 });
 
 // ────────────────────────────────────────────────
-// Public endpoint to get latest document URLs
+// Public endpoint to get latest document URLs (with cache busting)
 // ────────────────────────────────────────────────
 app.get('/api/documents/:doc', (req, res) => {
   const doc = req.params.doc;
@@ -213,11 +213,50 @@ app.get('/api/documents/:doc', (req, res) => {
 });
 
 // ────────────────────────────────────────────────
-// 404 handler – last route
+// News endpoints (in-memory for now)
+// ────────────────────────────────────────────────
+let newsItems = []; // ← lost on server restart
+
+// GET all news (public)
+app.get('/api/news', (req, res) => {
+  res.json(newsItems);
+});
+
+// POST new news item (protected)
+app.post('/admin/news', (req, res) => {
+  const authHeader = req.headers.authorization || '';
+  const base64Credentials = authHeader.split(' ')[1] || '';
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [username, password] = credentials.split(':');
+
+  if (username !== 'admin' || password !== process.env.ADMIN_PASSWORD) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
+  }
+
+  const { title, teaser, content } = req.body;
+
+  if (!title || !content) {
+    return res.status(400).json({ success: false, error: 'Title and content are required' });
+  }
+
+  const newNews = {
+    id: newsItems.length ? newsItems[newsItems.length - 1].id + 1 : 1,
+    title: title.trim(),
+    teaser: teaser ? teaser.trim() : title.substring(0, 100) + (title.length > 100 ? '...' : ''),
+    content: content.trim(),
+    date: new Date().toISOString().split('T')[0]
+  };
+
+  newsItems.push(newNews);
+
+  res.json({ success: true, message: 'News created', item: newNews });
+});
+
+// ────────────────────────────────────────────────
+// 404 fallback
 // ────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', 'index.html'));
-  // Or: res.status(404).send('Page not found');
 });
 
 // ────────────────────────────────────────────────
@@ -225,4 +264,5 @@ app.use((req, res) => {
 // ────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Admin panel: http://localhost:${PORT}/admin/upload`);
 });
