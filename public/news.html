@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>News | VVU SRC Senate</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --gold: #b8943f; --gold-light: #d4ac57; --gold-pale: #f5e9c8;
+      --navy: #0d1b3e; --navy-mid: #1a2f5e; --navy-light: #2a4a8a;
+      --cream: #faf8f3; --cream-dark: #f0ead8;
+      --white: #ffffff;
+      --text-dark: #1a1a2e; --text-mid: #3d3d5c; --text-light: #6b6b8a;
+      --border: #e0d5bf;
+      --shadow-sm: 0 2px 12px rgba(13,27,62,0.07);
+      --shadow-md: 0 6px 32px rgba(13,27,62,0.11);
+      --shadow-lg: 0 14px 56px rgba(13,27,62,0.16);
+      --tr: 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--text-dark); line-height: 1.6; overflow-x: hidden; }
+
+    .topbar { background: var(--navy); color: rgba(255,255,255,0.65); font-size: 0.69rem; letter-spacing: 0.07em; text-transform: uppercase; padding: 7px 48px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .tb-item { display: flex; align-items: center; gap: 7px; }
+    .tb-dot { width: 5px; height: 5px; background: var(--gold); border-radius: 50%; }
+
+    nav { position: sticky; top: 0; z-index: 1000; background: var(--white); border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); transition: box-shadow var(--tr); }
+    nav.scrolled { box-shadow: var(--shadow-md); }
+    .nav-inner { max-width: 1240px; margin: 0 auto; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 16px; }
+
+    .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; flex-shrink: 0; }
+    .logo-badge { width: 46px; height: 46px; background: var(--navy); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+    .logo-badge::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; border: 1px solid rgba(184,148,63,0.4); }
+    .logo-badge svg { width: 21px; height: 21px; stroke: var(--gold); fill: none; stroke-width: 1.5; position: relative; z-index: 1; }
+    .logo-txt { display: flex; flex-direction: column; justify-content: center; height: 46px; }
+    .logo-txt .l-name { font-family: 'Cinzel', serif; font-size: 0.94rem; font-weight: 700; color: var(--navy); letter-spacing: 0.03em; line-height: 1.2; }
+    .logo-txt .l-sub { font-size: 0.6rem; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; line-height: 1.2; }
+
+    .nav-links { display: flex; align-items: center; gap: 2px; list-style: none; }
+    .nav-links > li > a { font-family: 'DM Sans', sans-serif; font-size: 0.79rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-mid); text-decoration: none; padding: 8px 13px; border-radius: 3px; transition: color var(--tr), background var(--tr); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .nav-links > li > a:hover { color: var(--navy); background: var(--cream); }
+    .nav-cta { background: var(--navy) !important; color: var(--white) !important; padding: 9px 17px !important; border-radius: 3px !important; font-size: 0.76rem !important; }
+    .nav-cta:hover { background: var(--navy-mid) !important; box-shadow: 0 4px 14px rgba(13,27,62,0.2) !important; }
+
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: var(--navy); border-radius: 2px; }
+
+    .announce { background: linear-gradient(90deg, var(--navy), var(--navy-mid)); border-bottom: 2px solid var(--gold); padding: 10px 48px; display: flex; align-items: center; justify-content: center; gap: 14px; }
+    .ann-badge { background: var(--gold); color: var(--navy); font-size: 0.57rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 100px; flex-shrink: 0; }
+    .announce p { color: rgba(255,255,255,0.83); font-size: 0.79rem; }
+    .announce p a { color: var(--gold-light); }
+    .ann-close { background: none; border: none; color: rgba(255,255,255,0.35); cursor: pointer; margin-left: auto; padding: 3px; display: flex; transition: color var(--tr); }
+    .ann-close:hover { color: var(--white); }
+    .ann-close svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    .hero { position: relative; min-height: 90vh; display: flex; align-items: center; background: var(--navy); overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse at 62% 50%, rgba(26,47,94,0.8) 0%, transparent 55%), radial-gradient(ellipse at 5% 85%, rgba(184,148,63,0.09) 0%, transparent 50%), linear-gradient(135deg, #0b1733 0%, #1a2f5e 45%, #0d1b3e 100%); }
+    .hero-grid { position: absolute; inset: 0; opacity: 0.03; background-image: repeating-linear-gradient(0deg, transparent, transparent 64px, rgba(255,255,255,1) 64px, rgba(255,255,255,1) 65px), repeating-linear-gradient(90deg, transparent, transparent 64px, rgba(255,255,255,1) 64px, rgba(255,255,255,1) 65px); }
+    .hero-rings { position: absolute; right: -100px; top: 50%; transform: translateY(-50%); width: 660px; height: 660px; border-radius: 50%; border: 1px solid rgba(184,148,63,0.1); }
+    .hero-rings::before { content: ''; position: absolute; inset: 65px; border-radius: 50%; border: 1px solid rgba(184,148,63,0.07); }
+    .hero-rings::after { content: ''; position: absolute; inset: 150px; border-radius: 50%; border: 1px solid rgba(184,148,63,0.05); }
+    .hero-content { position: relative; z-index: 2; max-width: 1240px; margin: 0 auto; padding: 80px 40px; width: 100%; }
+    .hero-eyebrow { display: inline-flex; align-items: center; gap: 8px; background: rgba(184,148,63,0.11); border: 1px solid rgba(184,148,63,0.27); color: var(--gold-light); font-size: 0.67rem; letter-spacing: 0.16em; text-transform: uppercase; padding: 6px 13px; border-radius: 100px; margin-bottom: 26px; font-weight: 500; }
+    .pdot { width: 6px; height: 6px; background: var(--gold-light); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.6)} }
+    .hero h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.8rem, 5.5vw, 5.2rem); font-weight: 600; color: var(--white); line-height: 1.06; letter-spacing: -0.01em; margin-bottom: 22px; max-width: 640px; }
+    .hero h1 em { font-style: italic; color: var(--gold-light); }
+    .hero-desc { font-size: 0.99rem; color: rgba(255,255,255,0.6); max-width: 490px; line-height: 1.75; margin-bottom: 40px; font-weight: 300; }
+
+    .sec { padding: 86px 0; }
+    .sec-inner { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+    .eyebrow-row { display: flex; align-items: center; gap: 14px; margin-bottom: 34px; }
+    .eline { flex: 1; height: 1px; background: var(--border); }
+    .eline-g { background: linear-gradient(90deg, var(--gold), transparent); }
+    .eline-gr { background: linear-gradient(90deg, transparent, var(--gold)); }
+    .etag { font-size: 0.64rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); font-weight: 600; white-space: nowrap; }
+    .sec-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.85rem, 3.5vw, 2.7rem); font-weight: 600; color: var(--navy); line-height: 1.18; margin-bottom: 11px; }
+    .sec-desc { font-size: 0.91rem; color: var(--text-light); line-height: 1.72; max-width: 555px; }
+
+    /* News Search */
+    .news-search { margin-bottom: 32px; }
+    .news-search input { width: 100%; max-width: 420px; background: var(--white); border: 1px solid var(--border); border-radius: 3px; padding: 11px 14px; font-size: 0.88rem; outline: none; transition: border-color var(--tr); }
+    .news-search input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,148,63,0.1); }
+
+    .news-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 32px; align-items: start; }
+    .news-feat { background: var(--white); border: 1px solid var(--border); border-radius: 5px; overflow: hidden; transition: box-shadow var(--tr); }
+    .news-feat:hover { box-shadow: var(--shadow-md); }
+    .news-thumb { height: 260px; background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); position: relative; display: flex; align-items: flex-end; overflow: hidden; }
+    .news-thumb::after { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(13,27,62,0.68) 0%, transparent 55%); }
+    .news-thumb-tag { position: relative; z-index: 1; margin: 0 24px 22px; background: var(--gold); color: var(--navy); font-size: 0.59rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 11px; border-radius: 100px; }
+    .news-body { padding: 28px 26px 24px; }
+    .news-tags { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+    .news-tag { background: var(--cream-dark); color: var(--navy); font-size: 0.59rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 9px; border-radius: 100px; }
+    .news-date { font-size: 0.72rem; color: var(--text-light); letter-spacing: 0.04em; margin-bottom: 8px; }
+    .news-body h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.48rem; font-weight: 600; color: var(--navy); line-height: 1.25; margin-bottom: 10px; }
+    .news-teaser { font-size: 0.86rem; color: var(--text-light); line-height: 1.65; margin-bottom: 12px; }
+    .news-full { max-height: 0; overflow: hidden; transition: max-height 0.6s ease; font-size: 0.86rem; color: var(--text-light); line-height: 1.65; }
+    .news-full.open { max-height: 1200px; margin-bottom: 16px; }
+    .news-meta { display: flex; align-items: center; gap: 12px; font-size: 0.72rem; color: var(--text-mid); margin-top: 12px; }
+    .news-more { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; color: var(--gold); font-size: 0.79rem; font-weight: 600; text-decoration: none; margin-top: 8px; transition: gap var(--tr); }
+    .news-more:hover { gap: 12px; }
+
+    .news-list { display: flex; flex-direction: column; gap: 16px; }
+    .news-item { background: var(--white); border: 1px solid var(--border); border-radius: 5px; padding: 18px; display: flex; gap: 14px; align-items: flex-start; transition: border-color var(--tr), box-shadow var(--tr); cursor: pointer; }
+    .news-item:hover { border-color: var(--gold-pale); box-shadow: var(--shadow-sm); }
+    .n-thumb { width: 82px; height: 82px; background: var(--cream-dark); border-radius: 4px; flex-shrink: 0; }
+    .n-content { flex: 1; }
+    .n-tags { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+    .n-date { font-size: 0.69rem; color: var(--text-light); margin-bottom: 4px; }
+    .news-item h4 { font-size: 0.94rem; font-weight: 600; color: var(--navy); line-height: 1.3; margin-bottom: 6px; }
+    .n-teaser { font-size: 0.79rem; color: var(--text-light); line-height: 1.5; margin-bottom: 8px; }
+    .n-full { max-height: 0; overflow: hidden; transition: max-height 0.6s ease; font-size: 0.79rem; color: var(--text-light); line-height: 1.5; }
+    .n-full.open { max-height: 1000px; margin-bottom: 8px; }
+    .n-meta { display: flex; align-items: center; gap: 10px; font-size: 0.69rem; color: var(--text-mid); margin-top: 8px; }
+    .n-more { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; color: var(--gold); font-size: 0.76rem; font-weight: 600; transition: gap var(--tr); }
+    .n-more:hover { gap: 10px; }
+
+    footer { background: var(--text-dark); }
+    .f-body { max-width: 1240px; margin: 0 auto; padding: 58px 40px 42px; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 42px; }
+    .f-brand .f-name { font-family: 'Cinzel', serif; font-size: 1.03rem; font-weight: 700; color: var(--white); letter-spacing: 0.04em; }
+    .f-brand .f-sub { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 13px; display: block; margin-top: 1px; }
+    .f-brand p { font-size: 0.79rem; color: rgba(255,255,255,0.48); line-height: 1.65; max-width: 265px; }
+    .f-socials { display: flex; gap: 8px; margin-top: 17px; }
+    .f-soc { width: 32px; height: 32px; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: border-color var(--tr), background var(--tr); }
+    .f-soc:hover { border-color: var(--gold); background: rgba(184,148,63,0.09); }
+    .f-soc svg { width: 13px; height: 13px; stroke: rgba(255,255,255,0.42); fill: none; stroke-width: 1.5; }
+    .f-col h4 { font-size: 0.67rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--white); font-weight: 600; margin-bottom: 13px; }
+    .f-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .f-col ul li a { color: rgba(255,255,255,0.46); text-decoration: none; font-size: 0.79rem; transition: color var(--tr); }
+    .f-col ul li a:hover { color: var(--gold-light); }
+    .f-base { border-top: 1px solid rgba(255,255,255,0.07); max-width: 1240px; margin: 0 auto; padding: 17px 40px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.69rem; color: rgba(255,255,255,0.32); letter-spacing: 0.04em; }
+    .f-base a { color: var(--gold); text-decoration: none; }
+
+    .scroll-top { position: fixed; bottom: 26px; right: 26px; width: 40px; height: 40px; background: var(--navy); border: 1px solid rgba(184,148,63,0.3); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 500; opacity: 0; visibility: hidden; transform: translateY(6px); transition: opacity var(--tr), transform var(--tr), visibility var(--tr); }
+    .scroll-top.show { opacity: 1; visibility: visible; transform: translateY(0); }
+    .scroll-top:hover { background: var(--navy-mid); }
+    .scroll-top svg { width: 16px; height: 16px; stroke: var(--gold); fill: none; stroke-width: 2; }
+
+    .mm { position: fixed; inset: 0; background: var(--white); z-index: 999; padding: 68px 30px 30px; display: flex; flex-direction: column; gap: 0; transform: translateX(100%); transition: transform var(--tr); overflow-y: auto; }
+    .mm.open { transform: translateX(0); }
+    .mm-link { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 600; color: var(--navy); text-decoration: none; padding: 11px 0; border-bottom: 1px solid var(--border); display: block; text-align: left; width: 100%; transition: color var(--tr); }
+    .mm-link:hover { color: var(--gold); }
+    .mm-x { position: absolute; top: 16px; right: 16px; background: var(--cream); border: 1px solid var(--border); border-radius: 4px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .mm-x svg { width: 15px; height: 15px; stroke: var(--navy); fill: none; stroke-width: 2; }
+
+    @media (max-width: 1060px) {
+      .nav-inner, .sec-inner, .f-body, .f-base { padding-left: 24px; padding-right: 24px; }
+      .topbar, .announce { padding-left: 24px; padding-right: 24px; }
+      .hero-content { padding: 70px 24px; }
+    }
+    @media (max-width: 880px) {
+      .nav-links { display: none; } .hamburger { display: flex; }
+      .news-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="announce" id="announce">
+  <span class="ann-badge">Notice</span>
+  <p>Senate General Assembly — <strong>March 14, 2025</strong> · Main Auditorium, 10:00 AM &nbsp;·&nbsp; <a href="#">View Agenda</a></p>
+  <button class="ann-close" id="annClose" aria-label="Close"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+</div>
+
+<div class="topbar">
+  <span class="tb-item"><span class="tb-dot"></span>Valley View University · Techiman Campus</span>
+  <span class="tb-item">Academic Year 2024 / 2025</span>
+  <span class="tb-item">senate@vvu.edu.gh</span>
+</div>
+
+<nav id="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      <div class="logo-badge">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="logo-txt">
+        <span class="l-name">VVU SRC Senate</span>
+        <span class="l-sub">Valley View University</span>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="functions.html">Functions</a></li>
+      <li><a href="senators.html">Senators</a></li>
+      <li><a href="news.html">News</a></li>
+      <li><a href="documents.html">Documents</a></li>
+      <li><a href="contact.html" class="nav-cta">Contact Senate</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" onclick="toggleMM()" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="mm" id="mobileMenu">
+  <button class="mm-x" onclick="toggleMM()"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <a href="index.html" class="mm-link" onclick="toggleMM()">Home</a>
+  <a href="functions.html" class="mm-link" onclick="toggleMM()">Functions</a>
+  <a href="senators.html" class="mm-link" onclick="toggleMM()">Senators</a>
+  <a href="news.html" class="mm-link" onclick="toggleMM()">News</a>
+  <a href="documents.html" class="mm-link" onclick="toggleMM()">Documents</a>
+  <a href="contact.html" class="mm-link" onclick="toggleMM()">Contact Senate</a>
+</div>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-rings"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow"><span class="pdot"></span>Latest Updates</div>
+    <h1>Senate <em>News</em> &amp; Announcements</h1>
+    <p class="hero-desc">Stay informed on the latest resolutions, meetings, and governance developments from the VVU SRC Senate.</p>
+  </div>
+</section>
+
+<section class="sec bg-cream">
+  <div class="sec-inner">
+    <div class="eyebrow-row"><div class="eline eline-g"></div><span class="etag">Latest Updates</span><div class="eline eline-gr"></div></div>
+    <div class="sec-hdr">
+      <h2 class="sec-title">Senate News &amp; Announcements</h2>
+      <p class="sec-desc">Stay informed on the latest resolutions, meetings, and governance developments from the VVU SRC Senate.</p>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="news-search">
+      <input type="text" id="newsSearch" placeholder="Search news..." onkeyup="filterNews()"/>
+    </div>
+
+    <div class="news-grid">
+      <!-- Featured Story -->
+      <div class="news-feat">
+        <div class="news-thumb">
+          <span class="news-thumb-tag">Featured</span>
+        </div>
+        <div class="news-body">
+          <div class="news-tags">
+            <span class="news-tag">Resolution</span>
+            <span class="news-tag">Welfare</span>
+          </div>
+          <div class="news-date">February 10, 2025 • 4 min read</div>
+          <h3>Senate Passes Resolution on Extended Library Hours &amp; Digital Resource Access</h3>
+          <p class="news-teaser">In a landmark vote, the VVU SRC Senate unanimously passed Resolution No. 04/2025, directing university administration to extend library access to 11 PM on weekdays...</p>
+          <div class="news-full">
+            <p>The resolution also mandates the expansion of digital learning resources, including access to premium academic databases and e-books for all enrolled students.</p>
+            <p>Senators highlighted student feedback from recent surveys showing demand for longer study hours during exam periods. The motion received full support across all faculties.</p>
+            <p>Implementation is expected by the start of the next semester, with progress reports to be presented at the March General Assembly.</p>
+          </div>
+          <div class="news-meta">
+            <span>By Senate Secretariat</span>
+          </div>
+          <span class="news-more" onclick="toggleReadMore(this)">Read Full Story <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+        </div>
+      </div>
+
+      <!-- News List -->
+      <div class="news-list" id="newsList">
+        <div class="news-item">
+          <div class="n-thumb"></div>
+          <div class="n-content">
+            <div class="n-tags">
+              <span class="news-tag">Finance</span>
+            </div>
+            <div class="n-date">February 07, 2025 • 3 min read</div>
+            <h4>Budget Review Committee Presents Q1 Financial Report</h4>
+            <p class="n-teaser">The Finance Committee tabled the Q1 2025 expenditure report at the February plenary session...</p>
+            <div class="n-full">
+              <p>The report detailed transparent allocation of student funds across welfare programs, events, and faculty support initiatives.</p>
+              <p>Key highlights include increased funding for academic workshops and emergency student aid.</p>
+            </div>
+            <div class="n-meta">
+              <span>By Senate Secretariat</span>
+            </div>
+            <span class="n-more" onclick="toggleItemReadMore(this)">Read More <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="n-thumb"></div>
+          <div class="n-content">
+            <div class="n-tags">
+              <span class="news-tag">Welfare</span>
+            </div>
+            <div class="n-date">January 29, 2025 • 2 min read</div>
+            <h4>New Welfare Committee Inaugurated to Address Student Concerns</h4>
+            <p class="n-teaser">Senate approved a dedicated Student Welfare Committee with six senator members...</p>
+            <div class="n-full">
+              <p>The committee will focus on fast-tracking responses to campus issues including accommodation, health services, and academic support.</p>
+            </div>
+            <div class="n-meta">
+              <span>By Senate Secretariat</span>
+            </div>
+            <span class="n-more" onclick="toggleItemReadMore(this)">Read More <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="n-thumb"></div>
+          <div class="n-content">
+            <div class="n-tags">
+              <span class="news-tag">Meeting</span>
+            </div>
+            <div class="n-date">January 15, 2025 • 3 min read</div>
+            <h4>VVU SRC Senate Begins Academic Year with Inaugural Sitting</h4>
+            <p class="n-teaser">The 2024/2025 Senate held its first plenary with all 30 senators confirmed in attendance...</p>
+            <div class="n-full">
+              <p>Key priorities outlined include academic welfare improvements, transparent budgeting, and stronger student-administration dialogue.</p>
+            </div>
+            <div class="n-meta">
+              <span>By Senate Secretariat</span>
+            </div>
+            <span class="n-more" onclick="toggleItemReadMore(this)">Read More <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="n-thumb"></div>
+          <div class="n-content">
+            <div class="n-tags">
+              <span class="news-tag">Resolution</span>
+              <span class="news-tag">Academic</span>
+            </div>
+            <div class="n-date">December 18, 2024 • 4 min read</div>
+            <h4>Senate Approves Motion for Improved Internet Connectivity on Campus</h4>
+            <p class="n-teaser">Following student petitions, the Senate passed a motion urging administration to upgrade Wi-Fi infrastructure...</p>
+            <div class="n-full">
+              <p>The motion calls for high-speed internet in all lecture halls, hostels, and common areas to support online learning and research.</p>
+            </div>
+            <div class="n-meta">
+              <span>By Senate Secretariat</span>
+            </div>
+            <span class="n-more" onclick="toggleItemReadMore(this)">Read More <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="n-thumb"></div>
+          <div class="n-content">
+            <div class="n-tags">
+              <span class="news-tag">Election</span>
+            </div>
+            <div class="n-date">November 22, 2024 • 2 min read</div>
+            <h4>Election Oversight Committee Releases Final Guidelines</h4>
+            <p class="n-teaser">The Senate-approved guidelines ensure transparent and fair SRC elections...</p>
+            <div class="n-full">
+              <p>Guidelines cover campaign rules, voting procedures, and dispute resolution for the upcoming academic year.</p>
+            </div>
+            <div class="n-meta">
+              <span>By Senate Secretariat</span>
+            </div>
+            <span class="n-more" onclick="toggleItemReadMore(this)">Read More <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="n-thumb"></div>
+          <div class="n-content">
+            <div class="n-tags">
+              <span class="news-tag">Welfare</span>
+              <span class="news-tag">Health</span>
+            </div>
+            <div class="n-date">November 10, 2024 • 3 min read</div>
+            <h4>Senate Partners with Health Services for Mental Health Awareness Week</h4>
+            <p class="n-teaser">A joint initiative to provide free counseling sessions and workshops...</p>
+            <div class="n-full">
+              <p>The week-long program includes seminars, peer support groups, and resources for stress management during exams.</p>
+            </div>
+            <div class="n-meta">
+              <span>By Senate Secretariat</span>
+            </div>
+            <span class="n-more" onclick="toggleItemReadMore(this)">Read More <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-body">
+    <div class="f-brand">
+      <div class="f-name">VVU SRC Senate</div>
+      <span class="f-sub">Valley View University</span>
+      <p>The supreme legislative body of the VVU Student Representative Council — committed to student welfare, democratic governance, and academic excellence.</p>
+      <div class="f-socials">
+        <a class="f-soc" href="#" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+        <a class="f-soc" href="#" aria-label="Twitter"><svg viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg></a>
+        <a class="f-soc" href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+        <a class="f-soc" href="#" aria-label="WhatsApp"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></a>
+      </div>
+    </div>
+    <div class="f-col"><h4>Quick Links</h4><ul><li><a href="index.html">Home</a></li><li><a href="functions.html">Functions</a></li><li><a href="senators.html">Senators</a></li><li><a href="news.html">News</a></li><li><a href="documents.html">Documents</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+    <div class="f-col"><h4>Documents</h4><ul><li><a href="documents.html">Student Handbook</a></li><li><a href="documents.html">SRC Constitution</a></li><li><a href="#">Senate Resolutions</a></li><li><a href="#">Meeting Minutes</a></li><li><a href="#">Budget Reports</a></li></ul></div>
+    <div class="f-col"><h4>Faculties</h4><ul><li><a href="#">Science &amp; Technology</a></li><li><a href="#">Faculty of Business</a></li><li><a href="#">Health Sciences</a></li><li><a href="#">Arts &amp; Social Sciences</a></li><li><a href="#">Postgraduate School</a></li></ul></div>
+  </div>
+  <div class="f-base">
+    <span>© 2025 VVU SRC Senate, Valley View University. All rights reserved.</span>
+    <span>Built for the students of <a href="#">Valley View University</a></span>
+  </div>
+</footer>
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
+  <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<script>
+  function toggleMM() {
+    const m = document.getElementById('mobileMenu');
+    m.classList.toggle('open');
+    document.body.style.overflow = m.classList.contains('open') ? 'hidden' : '';
+  }
+
+  function toggleReadMore(btn) {
+    const full = btn.parentElement.querySelector('.news-full');
+    full.classList.toggle('open');
+    btn.innerHTML = full.classList.contains('open') ? 'Read Less <svg viewBox="0 0 24 24"><polyline points="18 9 12 15 6 9"/></svg>' : 'Read Full Story <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+  }
+
+  function toggleItemReadMore(btn) {
+    const item = btn.closest('.news-item');
+    const full = item.querySelector('.n-full');
+    full.classList.toggle('open');
+    btn.innerHTML = full.classList.contains('open') ? 'Read Less <svg viewBox="0 0 24 24"><polyline points="18 9 12 15 6 9"/></svg>' : 'Read More <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+  }
+
+  function filterNews() {
+    const input = document.getElementById('newsSearch').value.toLowerCase();
+    const items = document.querySelectorAll('.news-item');
+    items.forEach(item => {
+      const text = item.textContent.toLowerCase();
+      item.style.display = text.includes(input) ? '' : 'none';
+    });
+  }
+
+  document.getElementById('annClose').addEventListener('click', () => { document.getElementById('announce').style.display = 'none'; });
+  const navbar = document.getElementById('navbar');
+  const stBtn = document.getElementById('scrollTop');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 40);
+    stBtn.classList.toggle('show', window.scrollY > 500);
+  });
+
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) { en.target.style.opacity = '1'; en.target.style.transform = 'translateY(0)'; }
+    });
+  }, { threshold: 0.07 });
+  document.querySelectorAll('.news-feat, .news-item').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(18px)';
+    el.style.transition = 'opacity 0.48s ease, transform 0.48s ease';
+    io.observe(el);
+  });
+</script>
+</body>
+</html>
