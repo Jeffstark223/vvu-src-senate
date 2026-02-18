@@ -36,27 +36,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ────────────────────────────────────────────────
-// Routes
+// IMPORTANT: Specific routes MUST come BEFORE the catch-all *
 // ────────────────────────────────────────────────
 
-// Root → home page
+// Home page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Catch-all for other static HTML pages (senators.html, contact.html, etc.)
-app.get('*', (req, res, next) => {
-  const requestedPath = path.join(__dirname, 'public', req.path);
-  if (fs.existsSync(requestedPath) && fs.statSync(requestedPath).isFile()) {
-    return res.sendFile(requestedPath);
-  }
-  // Fallback to index.html (useful for SPA-like behavior if needed later)
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// ────────────────────────────────────────────────
-// Contact form endpoint
-// ────────────────────────────────────────────────
+// Contact form API
 app.post('/api/contact', async (req, res) => {
   const { firstName, lastName, studentId, subject, message } = req.body;
 
@@ -104,16 +92,67 @@ ${message}
   }
 });
 
-// ────────────────────────────────────────────────
-// Admin – Protected admin panel (full version)
-// ────────────────────────────────────────────────
-// Admin panel – protected
-app.get('/admin.html', (req, res) => {   // ← cleaner URL: /admin instead of /admin/upload
-  const filePath = path.join(__dirname, 'public', 'admin.html');  // ← change if you renamed
+// Documents API – get latest URL (with cache busting)
+app.get('/api/documents/:doc', (req, res) => {
+  const doc = req.params.doc;
+  let publicId = '';
+
+  if (doc === 'handbook') {
+    publicId = 'documents/student-handbook.pdf';
+  } else if (doc === 'constitution') {
+    publicId = 'documents/src-constitution.pdf';
+  } else {
+    return res.status(404).json({ error: 'Document not found' });
+  }
+
+  const timestamp = Date.now();
+  const url = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/raw/upload/v${timestamp}/${publicId}`;
+
+  res.json({ success: true, url });
+});
+
+// News API – public read
+app.get('/api/news', (req, res) => {
+  res.json(newsItems || []);
+});
+
+// News API – protected create
+app.post('/admin/news', (req, res) => {
+  const authHeader = req.headers.authorization || '';
+  const base64Credentials = authHeader.split(' ')[1] || '';
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [username, password] = credentials.split(':');
+
+  if (username !== 'admin' || password !== process.env.ADMIN_PASSWORD) {
+    return res.status(401).json({ success: false, error: 'Unauthorized' });
+  }
+
+  const { title, teaser, content } = req.body;
+
+  if (!title || !content) {
+    return res.status(400).json({ success: false, error: 'Title and content are required' });
+  }
+
+  const newNews = {
+    id: newsItems.length ? newsItems[newsItems.length - 1].id + 1 : 1,
+    title: title.trim(),
+    teaser: teaser ? teaser.trim() : title.substring(0, 100) + (title.length > 100 ? '...' : ''),
+    content: content.trim(),
+    date: new Date().toISOString().split('T')[0]
+  };
+
+  newsItems.push(newNews);
+
+  res.json({ success: true, message: 'News created', item: newNews });
+});
+
+// Admin panel – protected route (clean URL: /admin)
+app.get('/admin', (req, res) => {
+  const filePath = path.join(__dirname, 'public', 'admin.html');
 
   if (!fs.existsSync(filePath)) {
-    console.error(`Admin file not found: ${filePath}`);
-    return res.status(500).send('Admin panel file missing on server');
+    console.error(`Admin panel file not found: ${filePath}`);
+    return res.status(500).send('Admin panel file is missing on server');
   }
 
   const authHeader = req.headers.authorization || '';
@@ -125,14 +164,12 @@ app.get('/admin.html', (req, res) => {   // ← cleaner URL: /admin instead of /
     return res.sendFile(filePath);
   }
 
-  res.set('WWW-Authenticate', 'Basic realm="VVU SRC Admin"');
+  res.set('WWW-Authenticate', 'Basic realm="VVU SRC Admin Panel"');
   res.status(401).send('Authentication required (username: admin)');
 });
 
-// ────────────────────────────────────────────────
-// Handle PDF upload (Student Handbook / SRC Constitution)
-// ────────────────────────────────────────────────
-app.post('/admin.html', upload.single('pdf'), async (req, res) => {
+// Protected document upload endpoint
+app.post('/admin/upload', upload.single('pdf'), async (req, res) => {
   const authHeader = req.headers.authorization || '';
   const base64Credentials = authHeader.split(' ')[1] || '';
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
@@ -193,71 +230,15 @@ app.post('/admin.html', upload.single('pdf'), async (req, res) => {
 });
 
 // ────────────────────────────────────────────────
-// Public endpoint to get latest document URLs (with cache busting)
+// Catch-all route – MUST BE LAST
 // ────────────────────────────────────────────────
-app.get('/api/documents/:doc', (req, res) => {
-  const doc = req.params.doc;
-  let publicId = '';
-
-  if (doc === 'handbook') {
-    publicId = 'documents/student-handbook.pdf';
-  } else if (doc === 'constitution') {
-    publicId = 'documents/src-constitution.pdf';
-  } else {
-    return res.status(404).json({ error: 'Document not found' });
+app.get('*', (req, res) => {
+  const requestedPath = path.join(__dirname, 'public', req.path.slice(1));
+  if (fs.existsSync(requestedPath) && fs.statSync(requestedPath).isFile()) {
+    return res.sendFile(requestedPath);
   }
-
-  const timestamp = Date.now();
-  const url = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/raw/upload/v${timestamp}/${publicId}`;
-
-  res.json({ success: true, url });
-});
-
-// ────────────────────────────────────────────────
-// News endpoints (in-memory for now)
-// ────────────────────────────────────────────────
-let newsItems = []; // ← lost on server restart
-
-// GET all news (public)
-app.get('/api/news', (req, res) => {
-  res.json(newsItems);
-});
-
-// POST new news item (protected)
-app.post('/admin/news', (req, res) => {
-  const authHeader = req.headers.authorization || '';
-  const base64Credentials = authHeader.split(' ')[1] || '';
-  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-  const [username, password] = credentials.split(':');
-
-  if (username !== 'admin' || password !== process.env.ADMIN_PASSWORD) {
-    return res.status(401).json({ success: false, error: 'Unauthorized' });
-  }
-
-  const { title, teaser, content } = req.body;
-
-  if (!title || !content) {
-    return res.status(400).json({ success: false, error: 'Title and content are required' });
-  }
-
-  const newNews = {
-    id: newsItems.length ? newsItems[newsItems.length - 1].id + 1 : 1,
-    title: title.trim(),
-    teaser: teaser ? teaser.trim() : title.substring(0, 100) + (title.length > 100 ? '...' : ''),
-    content: content.trim(),
-    date: new Date().toISOString().split('T')[0]
-  };
-
-  newsItems.push(newNews);
-
-  res.json({ success: true, message: 'News created', item: newNews });
-});
-
-// ────────────────────────────────────────────────
-// 404 fallback
-// ────────────────────────────────────────────────
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'public', 'index.html'));
+  // Fallback to index.html
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ────────────────────────────────────────────────
@@ -265,5 +246,5 @@ app.use((req, res) => {
 // ────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Admin panel: http://localhost:${PORT}/admin/upload`);
+  console.log(`Admin panel: http://localhost:${PORT}/admin`);
 });
