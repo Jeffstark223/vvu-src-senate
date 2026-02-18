@@ -98,29 +98,34 @@ ${message}
 // Admin – Protected PDF upload page
 // ────────────────────────────────────────────────
 app.get('/admin/upload', (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'admin-upload.html');
+  try {
+    const filePath = path.join(__dirname, 'public', 'admin-upload.html');
+    
+    // Optional: log what path we're trying (helps debugging)
+    console.log('Trying to serve admin page from:', filePath);
 
-  // Safety check: does the file exist?
-  if (!fs.existsSync(filePath)) {
-    console.error(`Admin page file not found: ${filePath}`);
-    return res.status(500).send(
-      'Server error: admin-upload.html file is missing. ' +
-      'Please check that the file exists in the public folder with exact name "admin-upload.html" (lowercase).'
-    );
+    // Check if file actually exists before sending
+    if (!fs.existsSync(filePath)) {
+      console.error('Admin page file NOT found at:', filePath);
+      return res.status(500).send('Admin page file is missing on the server');
+    }
+
+    const authHeader = req.headers.authorization || '';
+    const base64Credentials = authHeader.split(' ')[1] || '';
+    const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+    const [username, password] = credentials.split(':');
+
+    if (username === 'admin' && password === process.env.ADMIN_PASSWORD) {
+      return res.sendFile(filePath);
+    }
+
+    res.set('WWW-Authenticate', 'Basic realm="Admin Area"');
+    res.status(401).send('Login required (username: admin, password from .env)');
+  } catch (err) {
+    console.error('CRASH in /admin/upload route:', err.message);
+    console.error(err.stack);
+    res.status(500).send('Internal server error – check Render logs for details');
   }
-
-  // Basic HTTP Basic Auth
-  const authHeader = req.headers.authorization || '';
-  const base64Credentials = authHeader.split(' ')[1] || '';
-  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-  const [username, password] = credentials.split(':');
-
-  if (username === 'admin' && password === process.env.ADMIN_PASSWORD) {
-    return res.sendFile(filePath);
-  }
-
-  res.set('WWW-Authenticate', 'Basic realm="Admin – Document Upload"');
-  res.status(401).send('Authentication required. Username: admin, Password: (set in .env)');
 });
 
 // ────────────────────────────────────────────────
