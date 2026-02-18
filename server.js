@@ -4,42 +4,47 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
+const fs = require('fs'); // only needed if you want to check file existence manually
+
 require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// ────────────────────────────────────────────────
+// Cloudinary configuration
+// ────────────────────────────────────────────────
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-
-const app = express();
-app.set('strict routing', false);
-const PORT = process.env.PORT || 3000;
-
-// Memory storage → file goes to RAM → we upload to Cloudinary immediately
+// ────────────────────────────────────────────────
+// Multer setup – memory storage (direct upload to Cloudinary)
+// ────────────────────────────────────────────────
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB max – reasonable for constitutions/handbooks
+  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB max
 });
 
+// ────────────────────────────────────────────────
 // Middleware
-app.use(express.json());                    // for parsing JSON bodies
+// ────────────────────────────────────────────────
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));  // serve static files
 
-// Serve index.html as root
+// Serve all static files from the 'public' folder
+// This should handle /index.html, /contact.html, /news.html, etc.
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ────────────────────────────────────────────────
+// Routes
+// ────────────────────────────────────────────────
+
+// Root path – optional but explicit
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Catch-all for other HTML pages (so /contact.html, /news.html etc. work)
-app.get('*', (req, res) => {
-  const filePath = path.join(__dirname, 'public', req.path);
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      res.sendFile(path.join(__dirname, 'public', 'index.html')); // fallback to SPA-style if needed
-    }
-  });
 });
 
 // Contact form endpoint
@@ -50,8 +55,49 @@ app.post('/api/contact', async (req, res) => {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
-  // ────────────────────────────────────────
-// ADMIN – Protected PDF upload page (very basic auth for now)
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS, // App Password, NOT regular password
+    },
+  });
+
+  const mailOptions = {
+    from: `"VVU SRC Contact Form" <${process.env.EMAIL_USER}>`,
+    to: 'senate@vvu.edu.gh', // ← change to real email
+    replyTo: `${firstName} ${lastName} <${studentId}@vvu.edu.gh>`,
+    subject: `New Senate Inquiry: ${subject}`,
+    text: `
+Name: ${firstName} ${lastName}
+Student ID: ${studentId}
+Subject: ${subject}
+
+Message:
+${message}
+    `,
+    html: `
+      <h2>New Contact Form Submission</h2>
+      <p><strong>Name:</strong> ${firstName} ${lastName}</p>
+      <p><strong>Student ID:</strong> ${studentId}</p>
+      <p><strong>Subject:</strong> ${subject}</p>
+      <hr>
+      <p><strong>Message:</strong><br>${message.replace(/\n/g, '<br>')}</p>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ success: true, message: 'Message sent successfully!' });
+  } catch (error) {
+    console.error('Email error:', error);
+    res.status(500).json({ error: 'Failed to send message. Try again later.' });
+  }
+});
+
+// ────────────────────────────────────────────────
+// Admin – Protected PDF upload page (Basic Auth)
+// ────────────────────────────────────────────────
 app.get('/admin/upload', (req, res) => {
   const authHeader = req.headers.authorization || '';
   const base64Credentials = authHeader.split(' ')[1] || '';
@@ -66,10 +112,8 @@ app.get('/admin/upload', (req, res) => {
   res.status(401).send('Authentication required. Use admin credentials.');
 });
 
-// ────────────────────────────────────────
-// Handle actual PDF upload (POST)
+// Handle PDF upload (POST)
 app.post('/admin/upload', upload.single('pdf'), async (req, res) => {
-  // Re-check auth (defense in depth)
   const authHeader = req.headers.authorization || '';
   const base64Credentials = authHeader.split(' ')[1] || '';
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
@@ -93,7 +137,7 @@ app.post('/admin/upload', upload.single('pdf'), async (req, res) => {
   } else {
     return res.status(400).json({
       success: false,
-      error: 'File name must contain "handbook"/"student" or "constitution"/"src" to be accepted'
+      error: 'File name must contain "handbook"/"student" or "constitution"/"src"'
     });
   }
 
@@ -104,7 +148,7 @@ app.post('/admin/upload', upload.single('pdf'), async (req, res) => {
           resource_type: 'raw',
           public_id: targetPublicId,
           format: 'pdf',
-          overwrite: true,               // replace old version
+          overwrite: true,
           use_filename: false,
           unique_filename: false
         },
@@ -129,8 +173,9 @@ app.post('/admin/upload', upload.single('pdf'), async (req, res) => {
   }
 });
 
-// ────────────────────────────────────────
-// Public endpoints so frontend can get latest PDF URLs
+// ────────────────────────────────────────────────
+// Public endpoint to get latest document URLs (with cache busting)
+// ────────────────────────────────────────────────
 app.get('/api/documents/:doc', (req, res) => {
   const doc = req.params.doc;
   let publicId = '';
@@ -143,54 +188,26 @@ app.get('/api/documents/:doc', (req, res) => {
     return res.status(404).json({ error: 'Document not found' });
   }
 
-  // Cache-busting timestamp so browser gets fresh version after upload
   const timestamp = Date.now();
   const url = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/raw/upload/v${timestamp}/${publicId}`;
 
   res.json({ success: true, url });
 });
 
-  // Nodemailer setup (example using Gmail – better use app password or different service)
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',   // ← change to your provider
-    auth: {
-      user: process.env.EMAIL_USER,      // your-email@gmail.com
-      pass: process.env.EMAIL_PASS,      // App Password (NOT normal password)
-    },
-  });
-
-  const mailOptions = {
-    from: `"VVU SRC Contact Form" <${process.env.EMAIL_USER}>`,
-    to: 'senate@vvu.edu.gh',             // real senate email
-    replyTo: `${firstName} ${lastName} <${studentId}@vvu.edu.gh>`, // optional
-    subject: `New Senate Inquiry: ${subject}`,
-    text: `
-      Name: ${firstName} ${lastName}
-      Student ID: ${studentId}
-      Subject: ${subject}
-      
-      Message:
-      ${message}
-    `,
-    html: `
-      <h2>New Contact Form Submission</h2>
-      <p><strong>Name:</strong> ${firstName} ${lastName}</p>
-      <p><strong>Student ID:</strong> ${studentId}</p>
-      <p><strong>Subject:</strong> ${subject}</p>
-      <hr>
-      <p><strong>Message:</strong><br>${message.replace(/\n/g, '<br>')}</p>
-    `,
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ success: true, message: 'Message sent successfully!' });
-  } catch (error) {
-    console.error('Email error:', error);
-    res.status(500).json({ error: 'Failed to send message. Try again later.' });
-  }
+// ────────────────────────────────────────────────
+// 404 handler – last route (fallback to index or custom 404)
+// ────────────────────────────────────────────────
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'public', 'index.html'));
+  // Alternative (recommended for production):
+  // res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
+// ────────────────────────────────────────────────
+// Start the server
+// ────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Live at: http://localhost:${PORT}`);
+  console.log(`Deployed at: https://your-app-name.onrender.com`);
 });
