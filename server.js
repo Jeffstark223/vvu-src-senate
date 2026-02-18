@@ -107,12 +107,13 @@ ${message}
 // ────────────────────────────────────────────────
 // Admin – Protected admin panel (full version)
 // ────────────────────────────────────────────────
-app.get('/admin/upload', (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'admin.html'); // ← your full admin panel file
+// Admin panel – protected
+app.get('/admin', (req, res) => {   // ← cleaner URL: /admin instead of /admin/upload
+  const filePath = path.join(__dirname, 'public', 'admin.html');  // ← change if you renamed
 
   if (!fs.existsSync(filePath)) {
-    console.error('Admin panel file missing:', filePath);
-    return res.status(500).send('Admin panel file is missing on server');
+    console.error(`Admin file not found: ${filePath}`);
+    return res.status(500).send('Admin panel file missing on server');
   }
 
   const authHeader = req.headers.authorization || '';
@@ -124,7 +125,7 @@ app.get('/admin/upload', (req, res) => {
     return res.sendFile(filePath);
   }
 
-  res.set('WWW-Authenticate', 'Basic realm="Admin Panel – VVU SRC Senate"');
+  res.set('WWW-Authenticate', 'Basic realm="VVU SRC Admin"');
   res.status(401).send('Authentication required (username: admin)');
 });
 
