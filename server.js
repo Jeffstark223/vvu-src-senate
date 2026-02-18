@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
+app.set('strict routing', false);
 const PORT = process.env.PORT || 3000;
 
 // Middleware
