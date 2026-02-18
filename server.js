@@ -108,7 +108,7 @@ ${message}
 // Admin – Protected admin panel (full version)
 // ────────────────────────────────────────────────
 // Admin panel – protected
-app.get('/admin', (req, res) => {   // ← cleaner URL: /admin instead of /admin/upload
+app.get('/admin.html', (req, res) => {   // ← cleaner URL: /admin instead of /admin/upload
   const filePath = path.join(__dirname, 'public', 'admin.html');  // ← change if you renamed
 
   if (!fs.existsSync(filePath)) {
@@ -132,7 +132,7 @@ app.get('/admin', (req, res) => {   // ← cleaner URL: /admin instead of /admin
 // ────────────────────────────────────────────────
 // Handle PDF upload (Student Handbook / SRC Constitution)
 // ────────────────────────────────────────────────
-app.post('/admin/upload', upload.single('pdf'), async (req, res) => {
+app.post('/admin.html', upload.single('pdf'), async (req, res) => {
   const authHeader = req.headers.authorization || '';
   const base64Credentials = authHeader.split(' ')[1] || '';
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
