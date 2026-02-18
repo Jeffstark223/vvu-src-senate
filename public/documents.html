@@ -266,7 +266,10 @@
     <p>The Student Handbook contains all policies, regulations, student rights, academic guidelines, campus rules, and disciplinary procedures for enrolled students at Valley View University.</p>
     <p class="m-ed">Academic Year 2024 / 2025 Edition</p>
     <div class="m-btns">
-      <button class="mb-pri" onclick="dlDoc('handbook')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download Handbook</button>
+      <!-- For Student Handbook -->
+<button class="mb-pri" onclick="downloadDocument('handbook')">
+  <svg>...</svg> Download Student Handbook
+</button>
       <button class="mb-sec" onclick="closeModal('handbook')">Close</button>
     </div>
   </div>
@@ -281,7 +284,10 @@
     <p>The SRC Constitution is the supreme governing document of the Student Representative Council. It defines the structure, mandate, and operating procedures of all SRC organs including the Senate, and protects the democratic rights of all students.</p>
     <p class="m-ed">Ratified Edition — Last Amended 2023</p>
     <div class="m-btns">
-      <button class="mb-pri" onclick="dlDoc('constitution')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download Constitution</button>
+      <!-- For SRC Constitution -->
+<button class="mb-pri" onclick="downloadDocument('constitution')">
+  <svg>...</svg> Download SRC Constitution
+</button>
       <button class="mb-sec" onclick="closeModal('constitution')">Close</button>
     </div>
   </div>
@@ -314,20 +320,29 @@
   <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
 </button>
 
+<!-- Place this entire block just before </body> in documents.html -->
+
 <script>
-  function toggleMM() {
-    const m = document.getElementById('mobileMenu');
-    m.classList.toggle('open');
-    document.body.style.overflow = m.classList.contains('open') ? 'hidden' : '';
-  }
+  // ────────────────────────────────────────────────
+  // Helper: Show/hide modal
+  // ────────────────────────────────────────────────
   function openModal(type) {
-    document.getElementById('m-' + type).classList.add('open');
-    document.body.style.overflow = 'hidden';
+    const modal = document.getElementById('m-' + type);
+    if (modal) {
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
   }
+
   function closeModal(type) {
-    document.getElementById('m-' + type).classList.remove('open');
-    document.body.style.overflow = '';
+    const modal = document.getElementById('m-' + type);
+    if (modal) {
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+    }
   }
+
+  // Close modal when clicking outside content
   document.querySelectorAll('.m-bg').forEach(bg => {
     bg.addEventListener('click', e => {
       if (e.target === bg) {
@@ -336,6 +351,8 @@
       }
     });
   });
+
+  // Close modal with Escape key
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       document.querySelectorAll('.m-bg.open').forEach(m => {
@@ -344,23 +361,96 @@
       });
     }
   });
-  function dlDoc(type) {
-    alert('The ' + (type === 'handbook' ? 'Student Handbook' : 'SRC Constitution') + ' will be available for download once uploaded by the Senate Secretariat.');
+
+  // ────────────────────────────────────────────────
+  // Download document – fetch fresh URL from backend
+  // ────────────────────────────────────────────────
+  async function downloadDocument(type) {
+    const statusElement = document.getElementById('download-status-' + type) || 
+                         document.createElement('div'); // fallback if no status div
+
+    try {
+      // Show loading
+      if (statusElement) {
+        statusElement.textContent = 'Fetching latest document...';
+        statusElement.style.color = '#b8943f';
+      }
+
+      const response = await fetch(`/api/documents/${type}`, {
+        cache: 'no-store'   // important – prevent browser caching old URLs
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.url) {
+        // Open the fresh Cloudinary URL in new tab
+        window.open(data.url, '_blank');
+
+        if (statusElement) {
+          statusElement.textContent = 'Document opened! ✓';
+          statusElement.style.color = '#1a6b3e';
+          setTimeout(() => { statusElement.textContent = ''; }, 4000);
+        }
+      } else {
+        throw new Error(data.error || 'No document URL returned');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+
+      if (statusElement) {
+        statusElement.textContent = 'Could not load document. Please try again later.';
+        statusElement.style.color = '#990000';
+        setTimeout(() => { statusElement.textContent = ''; }, 6000);
+      } else {
+        alert('Could not load the document right now.\n\n' + error.message);
+      }
+    }
   }
-  document.getElementById('annClose').addEventListener('click', () => {
+
+  // ────────────────────────────────────────────────
+  // Optional: dlDoc() wrapper if you still use it in onclick
+  // (you can replace onclick="dlDoc('handbook')" with onclick="downloadDocument('handbook')"
+  // ────────────────────────────────────────────────
+  function dlDoc(type) {
+    downloadDocument(type);
+  }
+
+  // ────────────────────────────────────────────────
+  // Existing scroll / announcement / intersection observer code
+  // (keep your original code here if you want – I'm just showing additions)
+  // ────────────────────────────────────────────────
+  function toggleMM() {
+    const m = document.getElementById('mobileMenu');
+    m.classList.toggle('open');
+    document.body.style.overflow = m.classList.contains('open') ? 'hidden' : '';
+  }
+
+  document.getElementById('annClose')?.addEventListener('click', () => {
     document.getElementById('announce').style.display = 'none';
   });
+
   const navbar = document.getElementById('navbar');
   const stBtn = document.getElementById('scrollTop');
+
   window.addEventListener('scroll', () => {
-    navbar.classList.toggle('scrolled', window.scrollY > 40);
-    stBtn.classList.toggle('show', window.scrollY > 500);
+    if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 40);
+    if (stBtn) stBtn.classList.toggle('show', window.scrollY > 500);
   });
+
+  // Intersection observer for animations (your original)
   const io = new IntersectionObserver(entries => {
     entries.forEach(en => {
-      if (en.isIntersecting) { en.target.style.opacity = '1'; en.target.style.transform = 'translateY(0)'; }
+      if (en.isIntersecting) {
+        en.target.style.opacity = '1';
+        en.target.style.transform = 'translateY(0)';
+      }
     });
   }, { threshold: 0.07 });
+
   document.querySelectorAll('.doc-card').forEach(el => {
     el.style.opacity = '0';
     el.style.transform = 'translateY(18px)';
