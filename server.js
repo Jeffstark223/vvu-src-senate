@@ -4,7 +4,7 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
-const fs = require('fs'); // only needed if you want to check file existence manually
+const fs = require('fs');
 
 require('dotenv').config();
 
@@ -35,14 +35,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve all static files from the 'public' folder
-// This should handle /index.html, /contact.html, /news.html, etc.
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ────────────────────────────────────────────────
 // Routes
 // ────────────────────────────────────────────────
 
-// Root path – optional but explicit
+// Root path – explicit
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -59,7 +58,7 @@ app.post('/api/contact', async (req, res) => {
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // App Password, NOT regular password
+      pass: process.env.EMAIL_PASS, // Must be App Password
     },
   });
 
@@ -96,23 +95,37 @@ ${message}
 });
 
 // ────────────────────────────────────────────────
-// Admin – Protected PDF upload page (Basic Auth)
+// Admin – Protected PDF upload page
 // ────────────────────────────────────────────────
 app.get('/admin/upload', (req, res) => {
+  const filePath = path.join(__dirname, 'public', 'admin-upload.html');
+
+  // Safety check: does the file exist?
+  if (!fs.existsSync(filePath)) {
+    console.error(`Admin page file not found: ${filePath}`);
+    return res.status(500).send(
+      'Server error: admin-upload.html file is missing. ' +
+      'Please check that the file exists in the public folder with exact name "admin-upload.html" (lowercase).'
+    );
+  }
+
+  // Basic HTTP Basic Auth
   const authHeader = req.headers.authorization || '';
   const base64Credentials = authHeader.split(' ')[1] || '';
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
   const [username, password] = credentials.split(':');
 
   if (username === 'admin' && password === process.env.ADMIN_PASSWORD) {
-    return res.sendFile(path.join(__dirname, 'public', 'admin-upload.html'));
+    return res.sendFile(filePath);
   }
 
   res.set('WWW-Authenticate', 'Basic realm="Admin – Document Upload"');
-  res.status(401).send('Authentication required. Use admin credentials.');
+  res.status(401).send('Authentication required. Username: admin, Password: (set in .env)');
 });
 
+// ────────────────────────────────────────────────
 // Handle PDF upload (POST)
+// ────────────────────────────────────────────────
 app.post('/admin/upload', upload.single('pdf'), async (req, res) => {
   const authHeader = req.headers.authorization || '';
   const base64Credentials = authHeader.split(' ')[1] || '';
@@ -174,7 +187,7 @@ app.post('/admin/upload', upload.single('pdf'), async (req, res) => {
 });
 
 // ────────────────────────────────────────────────
-// Public endpoint to get latest document URLs (with cache busting)
+// Public endpoint to get latest document URLs
 // ────────────────────────────────────────────────
 app.get('/api/documents/:doc', (req, res) => {
   const doc = req.params.doc;
@@ -195,19 +208,16 @@ app.get('/api/documents/:doc', (req, res) => {
 });
 
 // ────────────────────────────────────────────────
-// 404 handler – last route (fallback to index or custom 404)
+// 404 handler – last route
 // ────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', 'index.html'));
-  // Alternative (recommended for production):
-  // res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
+  // Or: res.status(404).send('Page not found');
 });
 
 // ────────────────────────────────────────────────
-// Start the server
+// Start server
 // ────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Live at: http://localhost:${PORT}`);
-  console.log(`Deployed at: https://your-app-name.onrender.com`);
 });
