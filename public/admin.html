@@ -4,11 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel – VVU SRC Senate</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet"/>
-
   <style>
     :root {
       --gold: #b8943f;
@@ -23,184 +21,33 @@
       --text-dark: #1a1a2e;
       --text-mid: #3d3d5c;
     }
-
-    * { box-sizing: border-box; margin:0; padding:0; }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--cream);
-      color: var(--text-dark);
-      min-height: 100vh;
-      display: flex;
-    }
-
-    #sidebar {
-      width: 240px;
-      background: var(--navy);
-      color: white;
-      padding: 2rem 1.5rem;
-      height: 100vh;
-      position: fixed;
-      overflow-y: auto;
-    }
-
-    #sidebar h2 {
-      font-family: 'Cinzel', serif;
-      color: var(--gold);
-      font-size: 1.6rem;
-      margin-bottom: 2.2rem;
-    }
-
-    #sidebar ul {
-      list-style: none;
-    }
-
-    #sidebar li {
-      margin: 0.8rem 0;
-    }
-
-    #sidebar a {
-      color: rgba(255,255,255,0.9);
-      text-decoration: none;
-      display: block;
-      padding: 0.9rem 1.2rem;
-      border-radius: 6px;
-      transition: all 0.25s;
-    }
-
-    #sidebar a:hover,
-    #sidebar a.active {
-      background: var(--navy-mid);
-      color: white;
-    }
-
-    #main-content {
-      margin-left: 240px;
-      flex: 1;
-      padding: 2.5rem;
-    }
-
-    h1 {
-      font-family: 'Cinzel', serif;
-      color: var(--navy);
-      margin-bottom: 1.8rem;
-    }
-
-    .section {
-      display: none;
-    }
-
-    .section.active {
-      display: block;
-    }
-
-    .card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: var(--shadow-md);
-      padding: 1.8rem;
-      margin-bottom: 2rem;
-      border: 1px solid var(--border);
-    }
-
-    .card h3 {
-      color: var(--navy);
-      margin-bottom: 1.2rem;
-      font-size: 1.35rem;
-    }
-
-    .form-group {
-      margin-bottom: 1.4rem;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: var(--text-mid);
-    }
-
-    input[type="text"],
-    input[type="file"],
-    textarea {
-      width: 100%;
-      padding: 0.85rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-family: inherit;
-      background: #fdfbf7;
-    }
-
-    textarea {
-      min-height: 160px;
-      resize: vertical;
-    }
-
-    button {
-      background: var(--gold);
-      color: white;
-      border: none;
-      padding: 0.9rem 1.8rem;
-      font-size: 1.05rem;
-      font-weight: 600;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.25s;
-    }
-
-    button:hover {
-      background: var(--gold-light);
-    }
-
-    button:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
-
-    .status {
-      margin-top: 1.4rem;
-      padding: 1rem;
-      border-radius: 6px;
-      font-weight: 500;
-      text-align: center;
-    }
-
-    .status.success {
-      background: #e6ffe6;
-      color: #006600;
-    }
-
-    .status.error {
-      background: #ffe6e6;
-      color: #990000;
-    }
-
-    .news-list .news-item {
-      border-bottom: 1px solid var(--border);
-      padding: 1.2rem 0;
-    }
-
-    .news-item:last-child {
-      border-bottom: none;
-    }
-
-    .news-item strong {
-      color: var(--navy);
-      display: block;
-      margin-bottom: 0.4rem;
-    }
-
-    .news-item small {
-      color: var(--text-mid);
-    }
-
-    @media (max-width: 768px) {
-      #sidebar {
-        width: 70px;
-        padding: 1.5rem 0.8rem;
-      }
-      #sidebar h2, #sidebar a span { display: none; }
-      #main-content { margin-left: 70px; }
-    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text-dark); min-height:100vh; display:flex; }
+    #sidebar { width:240px; background:var(--navy); color:white; padding:2rem 1.5rem; height:100vh; position:fixed; overflow-y:auto; }
+    #sidebar h2 { font-family:'Cinzel',serif; color:var(--gold); font-size:1.6rem; margin-bottom:2.2rem; }
+    #sidebar ul { list-style:none; }
+    #sidebar li { margin:0.8rem 0; }
+    #sidebar a { color:rgba(255,255,255,0.9); text-decoration:none; display:block; padding:0.9rem 1.2rem; border-radius:6px; transition:all 0.25s; }
+    #sidebar a:hover, #sidebar a.active { background:var(--navy-mid); color:white; }
+    #main-content { margin-left:240px; flex:1; padding:2.5rem; }
+    h1 { font-family:'Cinzel',serif; color:var(--navy); margin-bottom:1.8rem; }
+    .section { display:none; }
+    .section.active { display:block; }
+    .card { background:white; border-radius:8px; box-shadow:var(--shadow-md); padding:1.8rem; margin-bottom:2rem; border:1px solid var(--border); }
+    .form-group { margin-bottom:1.4rem; }
+    label { display:block; margin-bottom:0.5rem; font-weight:500; color:var(--text-mid); }
+    input, textarea { width:100%; padding:0.85rem; border:1px solid var(--border); border-radius:6px; background:#fdfbf7; font-family:inherit; }
+    textarea { min-height:160px; resize:vertical; }
+    button { background:var(--gold); color:white; border:none; padding:0.9rem 1.8rem; font-size:1.05rem; border-radius:6px; cursor:pointer; }
+    button:hover { background:var(--gold-light); }
+    button:disabled { background:#aaa; cursor:not-allowed; }
+    .status { margin-top:1.4rem; padding:1rem; border-radius:6px; text-align:center; font-weight:500; }
+    .status.success { background:#e6ffe6; color:#006600; }
+    .status.error { background:#ffe6e6; color:#990000; }
+    .news-list .news-item { border-bottom:1px solid var(--border); padding:1.2rem 0; }
+    .news-item strong { color:var(--navy); display:block; }
+    .news-item small { color:var(--text-mid); }
+    @media (max-width:768px) { #sidebar {width:70px;padding:1.5rem 0.8rem;} #sidebar h2,#sidebar a span {display:none;} #main-content {margin-left:70px;} }
   </style>
 </head>
 <body>
@@ -208,9 +55,9 @@
   <aside id="sidebar">
     <h2>SRC Admin</h2>
     <ul>
-      <li><a href="/dashboard" class="active">Dashboard</a></li>
-      <li><a href="/documents">Documents</a></li>
-      <li><a href="#/news">News</a></li>
+      <li><a href="#dashboard" class="active">Dashboard</a></li>
+      <li><a href="#documents">Documents</a></li>
+      <li><a href="#news">News</a></li>
       <li><a href="#" onclick="logout()">Logout</a></li>
     </ul>
   </aside>
@@ -218,180 +65,124 @@
   <main id="main-content">
     <h1 id="page-title">Dashboard</h1>
 
-    <!-- ── Dashboard ── -->
     <section id="dashboard" class="section active">
       <div class="card">
-        <h3>Welcome to the Admin Panel</h3>
-        <p>Use this interface to:</p>
-        <ul>
-          <li>Upload or replace official documents (Student Handbook, SRC Constitution)</li>
-          <li>Create and publish news/announcements</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>Quick Overview</h3>
-        <p>News items published: <strong id="news-count">0</strong></p>
-        <p>Documents last updated: <em>check via Cloudinary or test download</em></p>
+        <h3>Admin Panel</h3>
+        <p>Manage documents and news announcements.</p>
       </div>
     </section>
 
-    <!-- ── Documents Section ── -->
     <section id="documents" class="section">
       <div class="card">
-        <h3>Upload / Replace Document</h3>
-        <p class="intro-text" style="margin-bottom:1.5rem;color:var(--text-mid);">
-          Accepted: PDFs with "handbook"/"student" or "constitution"/"src" in filename.
-        </p>
-
+        <h3>Upload Document</h3>
         <form id="uploadForm" enctype="multipart/form-data">
           <div class="form-group">
-            <label for="pdfFile">Select PDF file</label>
-            <input type="file" id="pdfFile" name="pdf" accept="application/pdf" required />
+            <label>Select PDF</label>
+            <input type="file" name="pdf" accept="application/pdf" required>
           </div>
-          <button type="submit" id="uploadBtn">Upload Document</button>
+          <button type="submit" id="uploadBtn">Upload</button>
         </form>
-
         <div id="uploadStatus" class="status"></div>
       </div>
     </section>
 
-    <!-- ── News Section ── -->
     <section id="news" class="section">
       <div class="card">
-        <h3>Create News / Announcement</h3>
+        <h3>New Announcement</h3>
         <form id="newsForm">
           <div class="form-group">
-            <label for="newsTitle">Title <span style="color:#c00;">*</span></label>
-            <input type="text" id="newsTitle" required placeholder="Senate Meeting – March 10, 2026" />
+            <label>Title <span style="color:red;">*</span></label>
+            <input type="text" id="newsTitle" required>
           </div>
           <div class="form-group">
-            <label for="newsTeaser">Short description / teaser (optional)</label>
-            <input type="text" id="newsTeaser" placeholder="Brief summary shown in news list" />
+            <label>Teaser (optional)</label>
+            <input type="text" id="newsTeaser">
           </div>
           <div class="form-group">
-            <label for="newsContent">Full content <span style="color:#c00;">*</span></label>
-            <textarea id="newsContent" required placeholder="Write the complete announcement here..."></textarea>
+            <label>Content <span style="color:red;">*</span></label>
+            <textarea id="newsContent" required></textarea>
           </div>
-          <button type="submit" id="postNewsBtn">Post News</button>
+          <button type="submit" id="postBtn">Post</button>
         </form>
-
         <div id="newsStatus" class="status"></div>
       </div>
-
       <div class="card">
-        <h3>Published News Items</h3>
+        <h3>Posted News</h3>
         <div id="newsList" class="news-list"></div>
       </div>
     </section>
   </main>
 
   <script>
-    // ────────────────────────────────────────
-    // Tab / Section switching
-    // ────────────────────────────────────────
-    const navLinks = document.querySelectorAll('#sidebar a');
+    const links = document.querySelectorAll('#sidebar a');
     const sections = document.querySelectorAll('.section');
-    const pageTitle = document.getElementById('page-title');
+    const title = document.getElementById('page-title');
 
-    navLinks.forEach(link => {
-      link.addEventListener('click', e => {
-        if (link.getAttribute('href').startsWith('#')) {
+    links.forEach(l => {
+      l.onclick = e => {
+        if (l.hash) {
           e.preventDefault();
-          const targetId = link.getAttribute('href').substring(1);
-
-          if (targetId === 'logout') {
-            logout();
-            return;
-          }
+          const id = l.hash.substring(1);
+          if (id === 'logout') return logout();
 
           sections.forEach(s => s.classList.remove('active'));
-          document.getElementById(targetId).classList.add('active');
-
-          navLinks.forEach(l => l.classList.remove('active'));
-          link.classList.add('active');
-
-          pageTitle.textContent = link.textContent.trim();
+          document.getElementById(id).classList.add('active');
+          links.forEach(x => x.classList.remove('active'));
+          l.classList.add('active');
+          title.textContent = l.textContent.trim();
         }
-      });
+      };
     });
 
-    // ────────────────────────────────────────
-    // Authentication helper
-    // ────────────────────────────────────────
-    function getAuthHeader() {
-      const password = prompt('Enter admin password:') || '';
-      if (!password) {
-        alert('Password required');
-        window.location.href = '/';
-        throw new Error('Auth cancelled');
-      }
-      return 'Basic ' + btoa('admin:' + password);
+    function getAuth() {
+      const p = prompt('Admin password:') || '';
+      if (!p) throw new Error('cancel');
+      return 'Basic ' + btoa('admin:' + p);
     }
 
-    // ────────────────────────────────────────
-    // Document Upload
-    // ────────────────────────────────────────
     document.getElementById('uploadForm')?.addEventListener('submit', async e => {
       e.preventDefault();
-
       const status = document.getElementById('uploadStatus');
       const btn = document.getElementById('uploadBtn');
-
       status.className = 'status';
       status.textContent = 'Uploading...';
       btn.disabled = true;
-      btn.textContent = 'Uploading...';
 
       try {
         const formData = new FormData(e.target);
         const res = await fetch('/admin/upload', {
           method: 'POST',
           body: formData,
-          headers: { 'Authorization': getAuthHeader() }
+          headers: { Authorization: getAuth() }
         });
-
         const data = await res.json();
 
         if (data.success) {
           status.className = 'status success';
-          status.innerHTML = `
-            ${data.message}<br>
-            <a href="${data.url}" target="_blank" style="color:#006600;">
-              View / Download →
-            </a>
-          `;
+          status.innerHTML = data.message + ' <a href="'+data.url+'" target="_blank">View</a>';
           e.target.reset();
         } else {
           status.className = 'status error';
-          status.textContent = data.error || 'Upload failed';
+          status.textContent = data.error || 'Failed';
         }
       } catch (err) {
         status.className = 'status error';
-        status.textContent = 'Network or server error';
+        status.textContent = 'Error';
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Upload Document';
       }
     });
 
-    // ────────────────────────────────────────
-    // News Posting
-    // ────────────────────────────────────────
     document.getElementById('newsForm')?.addEventListener('submit', async e => {
       e.preventDefault();
-
       const title = document.getElementById('newsTitle').value.trim();
       const teaser = document.getElementById('newsTeaser').value.trim();
       const content = document.getElementById('newsContent').value.trim();
 
-      if (!title || !content) {
-        alert('Title and full content are required');
-        return;
-      }
+      if (!title || !content) return alert('Title and content required');
 
       const status = document.getElementById('newsStatus');
-      const btn = document.getElementById('postNewsBtn');
-
+      const btn = document.getElementById('postBtn');
       status.className = 'status';
       status.textContent = 'Posting...';
       btn.disabled = true;
@@ -401,23 +192,22 @@
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': getAuthHeader()
+            Authorization: getAuth()
           },
           body: JSON.stringify({ title, teaser, content })
         });
-
         const data = await res.json();
 
         if (data.success) {
           status.className = 'status success';
-          status.textContent = 'News posted successfully!';
+          status.textContent = 'Posted!';
           e.target.reset();
           loadNews();
         } else {
           status.className = 'status error';
-          status.textContent = data.error || 'Failed to post news';
+          status.textContent = data.error || 'Failed';
         }
-      } catch (err) {
+      } catch {
         status.className = 'status error';
         status.textContent = 'Network error';
       } finally {
@@ -425,43 +215,27 @@
       }
     });
 
-    // ────────────────────────────────────────
-    // Load news list
-    // ────────────────────────────────────────
     async function loadNews() {
       try {
         const res = await fetch('/api/news');
-        const items = await res.json();
-        document.getElementById('news-count').textContent = items.length;
+        const data = await res.json();
+        const list = document.getElementById('newsList');
+        list.innerHTML = data.length ? '' : '<p>No news yet.</p>';
 
-        const container = document.getElementById('newsList');
-        container.innerHTML = '';
-
-        if (items.length === 0) {
-          container.innerHTML = '<p style="color:var(--text-mid);">No news posted yet.</p>';
-          return;
-        }
-
-        items.forEach(item => {
+        data.forEach(item => {
           const div = document.createElement('div');
           div.className = 'news-item';
-          div.innerHTML = `
-            <strong>${item.title}</strong>
-            <small>${item.date} • ${item.teaser || '(no teaser)'}</small>
-          `;
-          container.appendChild(div);
+          div.innerHTML = `<strong>${item.title}</strong><small>${item.date} • ${item.teaser || ''}</small>`;
+          list.appendChild(div);
         });
-      } catch (err) {
-        console.error('Failed to load news', err);
-      }
+      } catch {}
     }
 
-    // Load news on page open
     loadNews();
 
     function logout() {
-      alert('Logged out (refresh page to log in again)');
-      window.location.href = '/';
+      alert('Logged out');
+      location.href = '/';
     }
   </script>
 </body>

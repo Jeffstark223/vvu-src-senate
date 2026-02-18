@@ -11,40 +11,34 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ────────────────────────────────────────────────
-// Cloudinary configuration
-// ────────────────────────────────────────────────
+// Cloudinary setup
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ────────────────────────────────────────────────
-// Multer setup – memory storage (direct to Cloudinary)
-// ────────────────────────────────────────────────
+// Multer setup (in-memory → direct to Cloudinary)
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB max
+  limits: { fileSize: 10 * 1024 * 1024 }
 });
 
-// ────────────────────────────────────────────────
 // Middleware
-// ────────────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ────────────────────────────────────────────────
-// IMPORTANT: Specific routes MUST come BEFORE the catch-all *
+// Routes – specific routes FIRST, catch-all LAST
 // ────────────────────────────────────────────────
 
-// Home page
+// Homepage
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Contact form API
+// Contact form
 app.post('/api/contact', async (req, res) => {
   const { firstName, lastName, studentId, subject, message } = req.body;
 
@@ -56,195 +50,145 @@ app.post('/api/contact', async (req, res) => {
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // Must be Gmail App Password
+      pass: process.env.EMAIL_PASS,
     },
   });
 
   const mailOptions = {
-    from: `"VVU SRC Contact Form" <${process.env.EMAIL_USER}>`,
-    to: 'senate@vvu.edu.gh', // ← replace with real senate email
+    from: `"VVU SRC Contact" <${process.env.EMAIL_USER}>`,
+    to: 'senate@vvu.edu.gh',
     replyTo: `${firstName} ${lastName} <${studentId}@vvu.edu.gh>`,
-    subject: `New Senate Inquiry: ${subject}`,
-    text: `
-Name: ${firstName} ${lastName}
-Student ID: ${studentId}
-Subject: ${subject}
-
-Message:
-${message}
-    `,
-    html: `
-      <h2>New Contact Form Submission</h2>
-      <p><strong>Name:</strong> ${firstName} ${lastName}</p>
-      <p><strong>Student ID:</strong> ${studentId}</p>
-      <p><strong>Subject:</strong> ${subject}</p>
-      <hr>
-      <p><strong>Message:</strong><br>${message.replace(/\n/g, '<br>')}</p>
-    `,
+    subject: `Senate Inquiry: ${subject}`,
+    text: `Name: ${firstName} ${lastName}\nID: ${studentId}\nSubject: ${subject}\n\n${message}`,
+    html: `<h2>New Message</h2><p><b>Name:</b> ${firstName} ${lastName}</p><p><b>ID:</b> ${studentId}</p><p><b>Subject:</b> ${subject}</p><hr><p>${message.replace(/\n/g, '<br>')}</p>`,
   };
 
   try {
     await transporter.sendMail(mailOptions);
-    res.status(200).json({ success: true, message: 'Message sent successfully!' });
-  } catch (error) {
-    console.error('Email error:', error);
-    res.status(500).json({ error: 'Failed to send message. Try again later.' });
+    res.status(200).json({ success: true, message: 'Sent successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to send message' });
   }
 });
 
-// Documents API – get latest URL (with cache busting)
+// Documents URL (cache busting)
 app.get('/api/documents/:doc', (req, res) => {
   const doc = req.params.doc;
-  let publicId = '';
+  let id = '';
+  if (doc === 'handbook') id = 'documents/student-handbook.pdf';
+  else if (doc === 'constitution') id = 'documents/src-constitution.pdf';
+  else return res.status(404).json({ error: 'Not found' });
 
-  if (doc === 'handbook') {
-    publicId = 'documents/student-handbook.pdf';
-  } else if (doc === 'constitution') {
-    publicId = 'documents/src-constitution.pdf';
-  } else {
-    return res.status(404).json({ error: 'Document not found' });
-  }
-
-  const timestamp = Date.now();
-  const url = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/raw/upload/v${timestamp}/${publicId}`;
-
+  const ts = Date.now();
+  const url = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/raw/upload/v${ts}/${id}`;
   res.json({ success: true, url });
 });
 
-// News API – public read
+// News – public read
 app.get('/api/news', (req, res) => {
   res.json(newsItems || []);
 });
 
-// News API – protected create
+// News – admin create
 app.post('/admin/news', (req, res) => {
-  const authHeader = req.headers.authorization || '';
-  const base64Credentials = authHeader.split(' ')[1] || '';
-  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-  const [username, password] = credentials.split(':');
+  const auth = req.headers.authorization || '';
+  const [_, b64] = auth.split(' ');
+  const [user, pass] = Buffer.from(b64 || '', 'base64').toString().split(':');
 
-  if (username !== 'admin' || password !== process.env.ADMIN_PASSWORD) {
+  if (user !== 'admin' || pass !== process.env.ADMIN_PASSWORD) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
 
   const { title, teaser, content } = req.body;
+  if (!title || !content) return res.status(400).json({ success: false, error: 'Title + content required' });
 
-  if (!title || !content) {
-    return res.status(400).json({ success: false, error: 'Title and content are required' });
-  }
-
-  const newNews = {
-    id: newsItems.length ? newsItems[newsItems.length - 1].id + 1 : 1,
+  const item = {
+    id: (newsItems[newsItems.length - 1]?.id || 0) + 1,
     title: title.trim(),
-    teaser: teaser ? teaser.trim() : title.substring(0, 100) + (title.length > 100 ? '...' : ''),
+    teaser: teaser?.trim() || title.substring(0, 100) + (title.length > 100 ? '...' : ''),
     content: content.trim(),
     date: new Date().toISOString().split('T')[0]
   };
 
-  newsItems.push(newNews);
-
-  res.json({ success: true, message: 'News created', item: newNews });
+  newsItems.push(item);
+  res.json({ success: true, message: 'Posted', item });
 });
 
-// Admin panel – protected route (clean URL: /admin)
+// Admin panel (protected)
 app.get('/admin', (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'admin.html');
+  const fp = path.join(__dirname, 'public', 'admin.html');
 
-  if (!fs.existsSync(filePath)) {
-    console.error(`Admin panel file not found: ${filePath}`);
-    return res.status(500).send('Admin panel file is missing on server');
+  if (!fs.existsSync(fp)) {
+    console.error('Missing admin.html');
+    return res.status(500).send('Admin panel file missing');
   }
 
-  const authHeader = req.headers.authorization || '';
-  const base64Credentials = authHeader.split(' ')[1] || '';
-  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-  const [username, password] = credentials.split(':');
+  const auth = req.headers.authorization || '';
+  const [_, b64] = auth.split(' ');
+  const [user, pass] = Buffer.from(b64 || '', 'base64').toString().split(':');
 
-  if (username === 'admin' && password === process.env.ADMIN_PASSWORD) {
-    return res.sendFile(filePath);
+  if (user === 'admin' && pass === process.env.ADMIN_PASSWORD) {
+    return res.sendFile(fp);
   }
 
-  res.set('WWW-Authenticate', 'Basic realm="VVU SRC Admin Panel"');
-  res.status(401).send('Authentication required (username: admin)');
+  res.set('WWW-Authenticate', 'Basic realm="Admin"');
+  res.status(401).send('Login required');
 });
 
-// Protected document upload endpoint
+// Upload PDF (protected)
 app.post('/admin/upload', upload.single('pdf'), async (req, res) => {
-  const authHeader = req.headers.authorization || '';
-  const base64Credentials = authHeader.split(' ')[1] || '';
-  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
-  const [username, password] = credentials.split(':');
+  const auth = req.headers.authorization || '';
+  const [_, b64] = auth.split(' ');
+  const [user, pass] = Buffer.from(b64 || '', 'base64').toString().split(':');
 
-  if (username !== 'admin' || password !== process.env.ADMIN_PASSWORD) {
+  if (user !== 'admin' || pass !== process.env.ADMIN_PASSWORD) {
     return res.status(401).json({ success: false, error: 'Unauthorized' });
   }
 
-  if (!req.file) {
-    return res.status(400).json({ success: false, error: 'No PDF file received' });
-  }
+  if (!req.file) return res.status(400).json({ success: false, error: 'No file' });
 
-  const originalName = req.file.originalname.toLowerCase();
-  let targetPublicId = '';
+  const name = req.file.originalname.toLowerCase();
+  let pid = '';
 
-  if (originalName.includes('handbook') || originalName.includes('student')) {
-    targetPublicId = 'documents/student-handbook';
-  } else if (originalName.includes('constitution') || originalName.includes('src')) {
-    targetPublicId = 'documents/src-constitution';
-  } else {
-    return res.status(400).json({
-      success: false,
-      error: 'File name must contain "handbook"/"student" or "constitution"/"src"'
-    });
-  }
+  if (name.includes('handbook') || name.includes('student')) pid = 'documents/student-handbook';
+  else if (name.includes('constitution') || name.includes('src')) pid = 'documents/src-constitution';
+  else return res.status(400).json({ success: false, error: 'Invalid filename' });
 
   try {
     const result = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
+      cloudinary.uploader.upload_stream(
         {
           resource_type: 'raw',
-          public_id: targetPublicId,
+          public_id: pid,
           format: 'pdf',
-          overwrite: true,
-          use_filename: false,
-          unique_filename: false
+          overwrite: true
         },
-        (error, result) => {
-          if (error) return reject(error);
-          resolve(result);
-        }
-      );
-
-      stream.end(req.file.buffer);
+        (err, res) => err ? reject(err) : resolve(res)
+      ).end(req.file.buffer);
     });
 
     res.json({
       success: true,
-      message: `${targetPublicId}.pdf uploaded / updated successfully`,
-      url: result.secure_url,
-      version: result.version
+      message: 'Uploaded',
+      url: result.secure_url
     });
   } catch (err) {
-    console.error('Cloudinary upload error:', err);
-    res.status(500).json({ success: false, error: 'Upload failed – check server logs' });
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Upload failed' });
   }
 });
 
-// ────────────────────────────────────────────────
-// Catch-all route – MUST BE LAST
-// ────────────────────────────────────────────────
+// Catch-all – last route
 app.get('*', (req, res) => {
-  const requestedPath = path.join(__dirname, 'public', req.path.slice(1));
-  if (fs.existsSync(requestedPath) && fs.statSync(requestedPath).isFile()) {
-    return res.sendFile(requestedPath);
+  const fp = path.join(__dirname, 'public', req.path.slice(1));
+  if (fs.existsSync(fp) && fs.statSync(fp).isFile()) {
+    res.sendFile(fp);
+  } else {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
   }
-  // Fallback to index.html
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ────────────────────────────────────────────────
-// Start server
-// ────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Admin panel: http://localhost:${PORT}/admin`);
+  console.log(`Server on port ${PORT}`);
 });
