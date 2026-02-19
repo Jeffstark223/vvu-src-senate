@@ -58,7 +58,7 @@
       <li><a href="#dashboard" class="active">Dashboard</a></li>
       <li><a href="#documents">Documents</a></li>
       <li><a href="#news">News</a></li>
-      <li><a href="#" onclick="logout()">Logout</a></li>
+      <li><a href="#" onclick="logout(); return false;">Logout</a></li>
     </ul>
   </aside>
 
@@ -81,6 +81,9 @@
             <input type="file" id="pdfFile" name="pdf" accept="application/pdf" required />
             <small style="color: #666; display: block; margin-top: 6px;">
               Maximum file size: 50 MB (larger files will be rejected)
+            </small>
+            <small style="color: #666; display: block; margin-top: 6px;">
+              File name must contain "student", "handbook", "constitution" or "src" (case insensitive)
             </small>
           </div>
           <button type="submit" id="uploadBtn">Upload</button>
@@ -218,9 +221,10 @@
           status.className = 'status error';
           status.textContent = data.error || 'Failed';
         }
-      } catch {
+      } catch (err) {
         status.className = 'status error';
-        status.textContent = 'Network error';
+        status.textContent = 'Upload failed: ' + (err.message || 'unknown error');
+        console.log('Full upload error:', err);
       } finally {
         btn.disabled = false;
       }
@@ -245,8 +249,8 @@
     loadNews();
 
     function logout() {
-      alert('Logged out');
-      location.href = '/';
+      alert('You have been logged out.\nRefresh the page to log in again.');
+      window.location.href = '/';
     }
   </script>
 </body>

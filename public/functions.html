@@ -34,7 +34,10 @@
 
     .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; flex-shrink: 0; }
     .logo-badge { width: 46px; height: 46px; background: var(--navy); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
-    .logo-badge::after { content: ''; position: absolute; inset: 4px; border-radius: 50 }
+    .logo-badge::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; border: 1px solid rgba(184,148,63,0.4); }
+    .logo-badge svg { width: 21px; height: 21px; stroke: var(--gold); fill: none; stroke-width: 1.5; position: relative; z-index: 1; }
+    .logo-txt .l-name { font-family: 'Cinzel', serif; font-size: 0.94rem; font-weight: 700; color: var(--navy); letter-spacing: 0.03em; display: block; }
+    .logo-txt .l-sub { font-size: 0.6rem; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; }
 
     .nav-links { display: flex; align-items: center; gap: 2px; list-style: none; }
     .nav-links > li > a { font-family: 'DM Sans', sans-serif; font-size: 0.79rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-mid); text-decoration: none; padding: 8px 13px; border-radius: 3px; transition: color var(--tr), background var(--tr); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
@@ -140,17 +143,17 @@
     <span class="tb-item">senate@vvu.edu.gh</span>
   </div>
 
-<nav id="navbar">
-  <div class="nav-inner">
-    <a href="index.html" class="nav-logo">
-      <div class="logo-badge">
-        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-      </div>
-      <div class="logo-txt">
-        <span class="l-name">VVU SRC Senate</span>
-        <span class="l-sub">Valley View University</span>
-      </div>
-    </a>
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-badge">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="logo-txt">
+          <span class="l-name">VVU SRC Senate</span>
+          <span class="l-sub">Valley View University</span>
+        </div>
+      </a>
     <ul class="nav-links">
       <li><a href="/">Home</a></li>
       <li><a href="/senators.html">Senators</a></li>
