@@ -18,10 +18,10 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Multer setup (in-memory → direct to Cloudinary)
+// Multer setup (increased to 50 MB)
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }
+  limits: { fileSize: 50 * 1024 * 1024 }
 });
 
 // Middleware
@@ -29,8 +29,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// In-memory news storage (will reset on server restart)
+let newsItems = [];
+
 // ────────────────────────────────────────────────
-// Routes – specific routes FIRST, catch-all LAST
+// Routes – specific routes FIRST
 // ────────────────────────────────────────────────
 
 // Homepage
@@ -85,12 +88,17 @@ app.get('/api/documents/:doc', (req, res) => {
   res.json({ success: true, url });
 });
 
-// News – public read
+// ────────────────────────────────────────────────
+// NEWS ENDPOINTS
+// ────────────────────────────────────────────────
+
+// Get all news (used by news.html)
 app.get('/api/news', (req, res) => {
-  res.json(newsItems || []);
+  // Return newest first (reverse order)
+  res.json([...newsItems].reverse());
 });
 
-// News – admin create
+// Create new news (protected – from admin panel)
 app.post('/admin/news', (req, res) => {
   const auth = req.headers.authorization || '';
   const [_, b64] = auth.split(' ');
@@ -101,20 +109,23 @@ app.post('/admin/news', (req, res) => {
   }
 
   const { title, teaser, content } = req.body;
-  if (!title || !content) return res.status(400).json({ success: false, error: 'Title + content required' });
+  if (!title || !content) {
+    return res.status(400).json({ success: false, error: 'Title and content required' });
+  }
 
   const item = {
     id: (newsItems[newsItems.length - 1]?.id || 0) + 1,
     title: title.trim(),
-    teaser: teaser?.trim() || title.substring(0, 100) + (title.length > 100 ? '...' : ''),
+    teaser: teaser?.trim() || title.substring(0, 140) + (title.length > 140 ? '...' : ''),
     content: content.trim(),
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0]  // YYYY-MM-DD
   };
 
   newsItems.push(item);
-  res.json({ success: true, message: 'Posted', item });
+  res.json({ success: true, message: 'News posted', item });
 });
 
+// ────────────────────────────────────────────────
 // Admin panel (protected)
 app.get('/admin', (req, res) => {
   const fp = path.join(__dirname, 'public', 'admin.html');
@@ -179,7 +190,9 @@ app.post('/admin/upload', upload.single('pdf'), async (req, res) => {
   }
 });
 
-// Catch-all – last route
+// ────────────────────────────────────────────────
+// Catch-all – must be LAST
+// ────────────────────────────────────────────────
 app.get('*', (req, res) => {
   const fp = path.join(__dirname, 'public', req.path.slice(1));
   if (fs.existsSync(fp) && fs.statSync(fp).isFile()) {
@@ -190,5 +203,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

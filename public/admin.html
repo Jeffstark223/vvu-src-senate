@@ -77,8 +77,11 @@
         <h3>Upload Document</h3>
         <form id="uploadForm" enctype="multipart/form-data">
           <div class="form-group">
-            <label>Select PDF</label>
-            <input type="file" name="pdf" accept="application/pdf" required>
+            <label for="pdfFile">Select PDF file</label>
+            <input type="file" id="pdfFile" name="pdf" accept="application/pdf" required />
+            <small style="color: #666; display: block; margin-top: 6px;">
+              Maximum file size: 50 MB (larger files will be rejected)
+            </small>
           </div>
           <button type="submit" id="uploadBtn">Upload</button>
         </form>
@@ -170,6 +173,14 @@
         status.textContent = 'Error';
       } finally {
         btn.disabled = false;
+      }
+    });
+
+    document.getElementById('uploadForm')?.addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (file && file.size > 25 * 1024 * 1024) {
+        alert('File is too large! Maximum allowed is 25 MB.');
+        e.target.value = ''; // clear the input
       }
     });
 
