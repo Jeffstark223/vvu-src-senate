@@ -181,10 +181,8 @@
     <ul class="nav-links">
       <li><a href="/">Home</a></li>
       <li><a href="/senators.html">Senators</a></li>
-      <li><a href="/news.html">News</a></li>
       <li><a href="/documents.html">Documents</a></li>
       <li><a href="/functions.html">Functions</a></li>
-      <li><a href="/admin">Admin</a></li>
       <li><a href="/contact.html">Contact</a></li>
     </ul>
     <button class="hamburger" id="hamburger" onclick="toggleMM()" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -196,7 +194,6 @@
   <a href="index.html" class="mm-link" onclick="toggleMM()">Home</a>
   <a href="functions.html" class="mm-link" onclick="toggleMM()">Functions</a>
   <a href="senators.html" class="mm-link" onclick="toggleMM()">Senators</a>
-  <a href="news.html" class="mm-link" onclick="toggleMM()">News</a>
   <a href="documents.html" class="mm-link" onclick="toggleMM()">Documents</a>
   <a href="contact.html" class="mm-link" onclick="toggleMM()">Contact Senate</a>
 </div>
@@ -262,9 +259,9 @@
     <p class="m-ed">Academic Year 2021 / 2025 Edition</p>
     <div class="m-btns">
       <!-- For Student Handbook -->
-<button class="mb-pri" onclick="downloadDocument('handbook')">
-  <svg>...</svg> Download Student Handbook
-</button>
+      <a href="/Student-Handbook.pdf" class="mb-pri" download target="_blank">
+        <svg>...</svg> Download Student Handbook
+      </a>
       <button class="mb-sec" onclick="closeModal('handbook')">Close</button>
     </div>
   </div>
@@ -280,9 +277,9 @@
     <p class="m-ed">Ratified Edition — Last Amended 2026</p>
     <div class="m-btns">
       <!-- For SRC Constitution -->
-<button class="mb-pri" onclick="downloadDocument('constitution')">
-  <svg>...</svg> Download SRC Constitution
-</button>
+      <a href="/src-constitution.pdf" class="mb-pri" download target="_blank">
+        <svg>...</svg> Download SRC Constitution
+      </a>
       <button class="mb-sec" onclick="closeModal('constitution')">Close</button>
     </div>
   </div>
@@ -360,59 +357,13 @@
   // ────────────────────────────────────────────────
   // Download document – fetch fresh URL from backend
   // ────────────────────────────────────────────────
-  async function downloadDocument(type) {
-    const statusElement = document.getElementById('download-status-' + type) || 
-                         document.createElement('div'); // fallback if no status div
-
-    try {
-      // Show loading
-      if (statusElement) {
-        statusElement.textContent = 'Fetching latest document...';
-        statusElement.style.color = '#b8943f';
-      }
-
-      const response = await fetch(`/api/documents/${type}`, {
-        cache: 'no-store'   // important – prevent browser caching old URLs
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data.success && data.url) {
-        // Open the fresh Cloudinary URL in new tab
-        window.open(data.url, '_blank');
-
-        if (statusElement) {
-          statusElement.textContent = 'Document opened! ✓';
-          statusElement.style.color = '#1a6b3e';
-          setTimeout(() => { statusElement.textContent = ''; }, 4000);
-        }
-      } else {
-        throw new Error(data.error || 'No document URL returned');
-      }
-    } catch (error) {
-      console.error('Download error:', error);
-
-      if (statusElement) {
-        statusElement.textContent = 'Could not load document. Please try again later.';
-        statusElement.style.color = '#990000';
-        setTimeout(() => { statusElement.textContent = ''; }, 6000);
-      } else {
-        alert('Could not load the document right now.\n\n' + error.message);
-      }
-    }
-  }
+  
 
   // ────────────────────────────────────────────────
   // Optional: dlDoc() wrapper if you still use it in onclick
   // (you can replace onclick="dlDoc('handbook')" with onclick="downloadDocument('handbook')"
   // ────────────────────────────────────────────────
-  function dlDoc(type) {
-    downloadDocument(type);
-  }
+  
 
   // ────────────────────────────────────────────────
   // Existing scroll / announcement / intersection observer code
